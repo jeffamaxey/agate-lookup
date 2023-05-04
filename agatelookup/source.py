@@ -15,10 +15,10 @@ def make_table_path(keys, value, version=None):
     if isinstance(keys, (list, tuple)):
         keys = '/'.join(keys)
 
-    path = '%s/%s' % (keys, value)
+    path = f'{keys}/{value}'
 
     if version:
-        path += '.%s' % version
+        path += f'.{version}'
 
     path += '.csv'
 
@@ -31,10 +31,10 @@ def make_metadata_path(keys, value, version=None):
     if isinstance(keys, (list, tuple)):
         keys = '/'.join(keys)
 
-    path = '%s/%s' % (keys, value)
+    path = f'{keys}/{value}'
 
     if version:
-        path += '.%s' % version
+        path += f'.{version}'
 
     path += '.csv.yml'
 
@@ -46,11 +46,7 @@ def make_type_tester(meta):
     that will always use correct types for the table columns. (And avoid
     the overhead of type inference.)
     """
-    force = {}
-
-    for k, v in meta['columns'].items():
-        force[k] = getattr(agate, v['type'])()
-
+    force = {k: getattr(agate, v['type'])() for k, v in meta['columns'].items()}
     return agate.TypeTester(force=force)
 
 class Source(object):
@@ -81,7 +77,9 @@ class Source(object):
 
                 return text
 
-        raise RuntimeError('Unable to download remote file "%s" and local cache is not available.' % path)
+        raise RuntimeError(
+            f'Unable to download remote file "{path}" and local cache is not available.'
+        )
 
     def _write_cache(self, path, text):
         """
@@ -105,7 +103,7 @@ class Source(object):
         See :meth:`Source.get_table` for parameter details.
         """
         path = make_metadata_path(keys, value, version)
-        url = '%s/%s' % (self._root, path)
+        url = f'{self._root}/{path}'
 
         try:
             r = requests.get(url)
@@ -118,7 +116,7 @@ class Source(object):
         try:
             data = yaml.load(text)
         except:
-            raise ValueError('Failed to read or parse YAML at %s' % url)
+            raise ValueError(f'Failed to read or parse YAML at {url}')
 
         return data
 
@@ -145,7 +143,7 @@ class Source(object):
         tester = make_type_tester(meta)
 
         path = make_table_path(keys, value, version)
-        url = '%s/%s' % (self._root, path)
+        url = f'{self._root}/{path}'
 
         if agate.utils.issequence(keys):
             row_names = lambda r: tuple(r[k] for k in keys)
